@@ -1,26 +1,9 @@
 const UserModel = require("../model/userModel")
 
 
-const addToCart = async (req, res, next) => {
-    try{
-    const product = req.body;
-    const {username} = res.locals.user;
-    console.log(username);
-    const data =await  UserModel.addToCart(username, product);
-    res.status = 200;
-    res.send({success: true, message: `${product.title} added to Cart`,data})
-    }
-    catch(err) {
-        next(err);
-    }
-}
 
 const removeFromCart = async (req, res, next) => {
     
-}
-
-const checkout = async (req, res, next) => {
-
 }
 
 const clearCart = async (req, res, next) => {
@@ -35,23 +18,48 @@ const clearCart = async (req, res, next) => {
     }
 }
 
+const updateCart = async(req, res, next) => {
+    try {
+        const {username} = res.locals.user;
+        const data = req.body;
+        console.log('Logging data---------------------------')
+        console.log(data);
+        const response = await UserModel.updateCart(username, data);
+        res.status = 200;
+        res.send({success: true, message: 'Cart updated', response});
+        }
+        catch(err) {
+            next(err);
+        }
+} 
+
 const getCartItems = async (req, res, next) => {
     try{
     const{username} = res.locals.user;
-    const data =await UserModel.getCartItems(username);
+    const {cart, totalValue} =await UserModel.getCartItems(username);
     res.status = 200;
-    res.send({success: true, message: 'Cart Items',data})
+    res.send({success: true, message: 'Cart Items',data:{cart, totalValue}})
     }catch(err) {
         next(err);
     }
 
 }
-
+const checkout = async(req, res, next) =>{
+    try{
+    const{username} = res.locals.user;
+    const response = await UserModel.checkout(username);
+    res.status = 200;
+    res.send({success: true, response});
+    }
+    catch(err) {
+        next(err);
+    }
+}
 
 module.exports = {
-    addToCart,
     removeFromCart,
     checkout,
     clearCart,
-    getCartItems
+    getCartItems,
+    updateCart
 }

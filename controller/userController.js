@@ -29,16 +29,23 @@ const signup = async(req, res, next) => {
 const login = async(req, res, next) => {
     try {
     const data = req.body;
-    const {username, password} = data;
+    console.log(data);
+    const{username, password} = data;
+   // console.log(username, password);
     const user = await UserModel.findUser(username)
-    const {password: passwordHash, ...userData} = user;
+    let {password: passwordHash, ...userData} = user;
+    userData = userData._doc;
+    let {password:pwd, cart, totalValue, orders,secret, ...data1} = userData;
+    console.log('userData from here = ');
+    console.log(data1);
     
     const isVerified = await verifyPassword(password, passwordHash);
     if(isVerified) {
-        const token = await generateToken(userData, 36000000);
+        const token =  generateToken(data1);
         res.status = 200;
-        res.cookie("token", token, {maxAge: 3600_000, httpOnly: true});
-        res.send({message: `Welcome, ${username} login success`, data: userData._doc});
+        console.log(token);
+        res.cookie('token', token, { maxAge: 3600_000, httpOnly: true })
+        res.send({success: true, message: `Welcome, ${username} login success`, data: data1});
     }}catch(err) {
         next(err);
     }
@@ -47,7 +54,8 @@ const login = async(req, res, next) => {
 
 const loginWithToken = async (req, res, next) => {
     try {
-        console.log("cookies->" + req.cookies);
+        console.log('---------LOGGING COOKIES-------');
+        console.log(req.cookies);
     const {token = null} = req.cookies;
     const isVerified = await verifyToken(token);
     if(isVerified) {

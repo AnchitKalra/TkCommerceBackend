@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const {Schema, model} = mongoose;
 
+
 const userSchema = new Schema({
     name : {
         type : String,
@@ -25,7 +26,7 @@ const userSchema = new Schema({
         type: Number,
         default: 0
     },
-    orders: [String]
+    orders: [Object]
 })
 
 userSchema.statics.createUser =  async(userData) => {
@@ -47,14 +48,14 @@ userSchema.statics.findUser = async(username) => {
   return user;
     }
     catch(err) {
-        console.log(err);
+       throw err;
     }
 }
 
 userSchema.statics.getCartItems = async(username) => {
     try {
   const {cart, totalValue} =  await UserModel.findOne({username});
-  //console.log(user);
+  console.log(cart);
   return {cart, totalValue};
     }
     catch(err) {
@@ -62,11 +63,79 @@ userSchema.statics.getCartItems = async(username) => {
     }
 }
 
-userSchema.statics.addToCart = async(username, product) => {
+
+userSchema.statics.updateCart = async(username, product) => {
     try{
-        console.log("inside function");
-         const {cart, totalValue} =  await  UserModel.findOneAndUpdate({username}, {$push : {cart : {...product, quantity : product.quantity || 1}}, $inc : {totalValue : ((product.quantity || 1)* product.price)}, new:true});
-            return {cart, totalValue};
+        let {cart, totalValue} =  await  UserModel.findOne({username});
+        console.log('logging totalValue');
+        console.log(totalValue, typeof totalValue);
+        console.log('logging cart');
+        console.log(cart);
+        let flag = false;
+        let cart1 = cart.map(item=>{
+            if(item.id === product.id) {
+                item.quantity = product.quantity;
+                flag = true;
+                return item;
+            }
+            else{
+                return item;
+            }
+        });
+        if(cart1.length === 0 ){
+            if(product.quantity === 0){
+                return;
+            }
+            cart1.push(product);
+        }
+        else {
+            if(!flag) {
+                cart1.push(product);
+            }
+        }
+        console.log('prevprice')
+        console.log(product.prevPrice);
+        console.log('quantity');
+        console.log(product.quantity);
+        console.log('price');
+        console.log(product.price);
+            let value = parseInt((totalValue - parseInt(product.prevPrice || 0)) + parseInt((Number(product.quantity || 0) * parseInt(product.price))));
+            if(value < 0) {
+                value = 0;
+        }
+        let data = await UserModel.updateMany({username}, {$set: {cart: cart1, totalValue : value}}, {upsert:true});
+        console.log('logging data');
+        console.log(data);
+        let c = await UserModel.findOne({username});
+        cart = c.cart;
+        totalValue = c.totalValue;
+        console.log(cart);
+        console.log(totalValue);
+        return{cart, totalValue};
+
+    }
+    catch(err) {
+        console.log(err);
+    }
+}
+
+userSchema.statics.checkout = async(username) =>{
+    try{
+        let {cart, totalValue, orders} = await UserModel.findOne({username});
+        cart = cart.filter(item=> item.quantity >= 1);
+
+       // const orderId = nanoid(10);
+        orders.push(username, cart, totalValue);
+        let data = await UserModel.updateOne({username}, {$push: {orders}});
+        if(data.modifiedCount === 1) {
+            await UserModel.emptyCart(username);
+        }
+        else{
+            return "Order cannot be placed";
+        }
+        return data;
+
+
     }
     catch(err) {
         console.log(err);
@@ -91,6 +160,8 @@ userSchema.statics.resetPassword = async(username, password) =>{
         console.log(err);
     }
 }
+
+
 
 const UserModel = model('users', userSchema);
 module.exports = UserModel;
