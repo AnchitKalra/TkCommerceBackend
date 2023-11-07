@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const {Schema, model} = mongoose;
+const OrderModel = require('./orderModel');
 
 
 const userSchema = new Schema({
@@ -25,8 +26,7 @@ const userSchema = new Schema({
     totalValue: {
         type: Number,
         default: 0
-    },
-    orders: [Object]
+    }
 })
 
 userSchema.statics.createUser =  async(userData) => {
@@ -93,12 +93,6 @@ userSchema.statics.updateCart = async(username, product) => {
                 cart1.push(product);
             }
         }
-        console.log('prevprice')
-        console.log(product.prevPrice);
-        console.log('quantity');
-        console.log(product.quantity);
-        console.log('price');
-        console.log(product.price);
             let value = parseInt((totalValue - parseInt(product.prevPrice || 0)) + parseInt((Number(product.quantity || 0) * parseInt(product.price))));
             if(value < 0) {
                 value = 0;
@@ -121,18 +115,18 @@ userSchema.statics.updateCart = async(username, product) => {
 
 userSchema.statics.checkout = async(username) =>{
     try{
-        let {cart, totalValue, orders} = await UserModel.findOne({username});
+        let {cart, totalValue} = await UserModel.findOne({username});
         cart = cart.filter(item=> item.quantity >= 1);
 
        // const orderId = nanoid(10);
-        orders.push(username, cart, totalValue);
-        let data = await UserModel.updateOne({username}, {$push: {orders}});
-        if(data.modifiedCount === 1) {
+        let data = await OrderModel.createOrder(username, cart, totalValue);
+        if(data) {
             await UserModel.emptyCart(username);
         }
         else{
             return "Order cannot be placed";
         }
+        console.log(data);
         return data;
 
 

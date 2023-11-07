@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('./utils/dbConnection');
 const cookieParser = require('cookie-parser'); 
-const {userRouter, loginRouter, loginTokenRouter, resetPasswordRouter} = require('./router/userRouter');
+const {userRouter, loginRouter, loginTokenRouter, resetPasswordRouter, logoutRouter, prevOrdersRouter} = require('./router/userRouter');
 const { getCartRouter, addToCart, clearCart, updateCart, checkout } = require('./router/cartRouter');
 const cors = require('cors');
 const productsRouter = require('./router/productsRouter');
@@ -23,11 +23,13 @@ app.use("/user", userRouter);
 app.use("/user", loginRouter);
 app.use("/user", loginTokenRouter);
 app.use('/user', resetPasswordRouter);
+app.use('/user', logoutRouter);
 app.use('/cart', getCartRouter);
-// app.use('/cart', addToCart);
+// a'pp.use('/cart', addToCart);
 app.use('/cart', clearCart);
 app.use('/cart', updateCart);
 app.use('/cart', checkout);
+app.use('/order', prevOrdersRouter);
 
 
 app.listen(PORT, (err) => {

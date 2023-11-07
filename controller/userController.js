@@ -1,3 +1,4 @@
+const OrderModel = require('../model/orderModel');
 const UserModel = require('../model/userModel');
 const { generateToken, verifyToken } = require('../utils/jwtToken');
 const { generatePasswordHash, verifyPassword } = require('../utils/passwordManager');
@@ -67,6 +68,21 @@ const loginWithToken = async (req, res, next) => {
 }}
 
 
+const logout = async (req, res, next) => {
+    try {
+        console.log('---------LOGGING COOKIES-------');
+        console.log(req.cookies);
+    const {token = null} = req.cookies;
+    res.clearCookie('token');
+
+        res.status = 200;
+        res.send({success:true});
+}catch(err) {
+    next(err);
+}}
+
+
+
 const resetPassword = async(req, res, next) => {
     try{
     const {username, password, otp} = req.body;
@@ -85,6 +101,19 @@ const resetPassword = async(req, res, next) => {
     }
 }catch(err) {
     next(err);
+}}
+
+    const previousOrders = async(req, res, next) =>{
+        try{
+        const {username} = res.locals.user;
+        console.log(username);
+        const data = await OrderModel.previousOrders(username);
+        console.log(data);
+        res.status = 200;
+        res.send({success: true, data});
+        }
+        catch(err) {
+            next(err);
+        }
 }
-}
-module.exports = {signup, login, loginWithToken, resetPassword};
+module.exports = {signup, login, loginWithToken, resetPassword,logout, previousOrders};
