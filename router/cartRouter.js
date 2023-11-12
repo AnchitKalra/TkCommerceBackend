@@ -4,9 +4,9 @@ const { getCartItems, clearCart, updateCart,checkout } = require('../controller/
 const router = require('express').Router();
  router.get('/getCart', authController, getCartItems);
 //  router.post('/addToCart', authController, addToCart);
- router.patch('/clearCart', authController, clearCart);
+ router.delete('/clearCart', authController, clearCart);
  router.patch('/updateCart', authController, updateCart);
  router.get('/checkout', authController, checkout);
 
 
-module.exports = {getCartRouter : router, addToCart: router, clearCart: router, updateCart: router, checkout:router};
+module.exports = {getCartRouter : router, addToCart: router, clearCartRouter: router, updateCart: router, checkout:router};

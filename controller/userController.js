@@ -85,19 +85,15 @@ const logout = async (req, res, next) => {
 
 const resetPassword = async(req, res, next) => {
     try{
-    const {username, password, otp} = req.body;
-    const {secret} = await UserModel.findUser(username);
-    const isVerified = verifyOtp(secret, otp);
-    if(isVerified) {
+    const {username, password} = req.body;
+    let response = await UserModel.findUser(username);
+    if(response.name) {
         const passwordHash = await generatePasswordHash(password);
         const data = await UserModel.resetPassword(username, passwordHash);
         if(data.modifiedCount) {
             res.status = 200;
             res.send({success: true, message: 'Password reset successfully'});
         }
-    }
-    else {
-        throw new Error('invalid otp');
     }
 }catch(err) {
     next(err);

@@ -74,10 +74,17 @@ userSchema.statics.updateCart = async(username, product) => {
         let flag = false;
         let cart1 = cart.map(item=>{
             if(item.id === product.id) {
+                if(!product.listItemFlag) {
                 item.quantity = product.quantity;
                 flag = true;
                 return item;
             }
+            else{
+                item.quantity += product.quantity;
+                flag = true;
+                return item;
+            }
+        }
             else{
                 return item;
             }
@@ -93,7 +100,7 @@ userSchema.statics.updateCart = async(username, product) => {
                 cart1.push(product);
             }
         }
-            let value = parseInt((totalValue - parseInt(product.prevPrice || 0)) + parseInt((Number(product.quantity || 0) * parseInt(product.price))));
+            let value = parseInt((totalValue - parseInt(product.prevPrice || 0)) + parseInt((parseInt(product.quantity || 0) * parseInt(product.price))));
             if(value < 0) {
                 value = 0;
         }
